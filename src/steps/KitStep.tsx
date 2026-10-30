@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useSession } from "../lib/session";
 import { ROLES } from "../lib/plan";
 import { draftOutreach, generateMedia, mailto, spotName } from "../lib/kit";
+import { posterPrompt, trackPrompt } from "../lib/prompts";
 import type { Kit, Outreach } from "../lib/types";
 
 export function KitStep({ plan, outreach, savePlan, reloadOutreach }: StepProps) {
@@ -43,18 +44,14 @@ export function KitStep({ plan, outreach, savePlan, reloadOutreach }: StepProps)
   const poster = () =>
     run("poster", async () => {
       const c = await creative();
-      const url = await generateMedia(
-        "poster",
-        `Editorial launch poster for "${ctx.brand}" ${ctx.goal} in ${ctx.spot}, ${ctx.city}. Headline text: "${c.headline}". Subline text: "${c.subline}". Visual direction: ${c.visual}. Professional print design, crisp legible typography, generous whitespace, no third-party logos.`,
-        plan.id,
-      );
+      const url = await generateMedia("poster", posterPrompt(ctx.brand, ctx.spot, c), plan.id);
       await savePlan({ kit: { ...(plan.kit || {}), creative: c, poster: { url, signals: [...taste.slice(0, 4), ...styles.slice(0, 3)] } } });
     });
 
   const track = () =>
     run("track", async () => {
       const c = await creative();
-      const url = await generateMedia("track", `Instrumental in-store background track, 30 seconds, loopable. ${c.music}`, plan.id);
+      const url = await generateMedia("track", trackPrompt(c), plan.id);
       await savePlan({ kit: { ...(plan.kit || {}), creative: c, track: { url, signals: styles.slice(0, 6) } } });
     });
 
