@@ -57,7 +57,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const workspace = workspaces.find((w) => w.id === workspaceId) || workspaces[workspaces.length - 1] || null;
+  const workspace = workspaces.find((w) => w.id === workspaceId) || workspaces[0] || null;
   return <SessionCtx.Provider value={{ session, ready, workspaces, workspace, setWorkspaceId, reloadWorkspaces }}>{children}</SessionCtx.Provider>;
 }
 
