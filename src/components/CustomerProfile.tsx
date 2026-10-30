@@ -11,7 +11,8 @@ const AGE_LABEL: Record<string, string> = {
 };
 
 export function CustomerProfile({ profile }: { profile: Profile }) {
-  const female = Math.round(50 + profile.femaleSkew * 50);
+  // Qloo returns gender as a skew from -1 (male) to +1 (female), not a share of customers.
+  const skew = profile.femaleSkew;
   return (
     <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
       <div>
@@ -35,12 +36,14 @@ export function CustomerProfile({ profile }: { profile: Profile }) {
       <div>
         <div className="text-sm font-medium">Gender skew <span className="font-normal text-faint">(vs. general population)</span></div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="tnum text-3xl font-semibold">{female >= 50 ? female : 100 - female}%</span>
-          <span className="text-sm text-muted">{female >= 50 ? "female" : "male"}</span>
+          <span className="tnum text-3xl font-semibold">{skew > 0 ? "+" : ""}{skew.toFixed(2)}</span>
+          <span className="text-sm text-muted">{Math.abs(skew) < 0.1 ? "balanced" : skew > 0 ? "toward female" : "toward male"}</span>
         </div>
-        <div className="mt-2 h-2.5 rounded-full bg-canvas">
-          <div className="h-full rounded-full bg-brand" style={{ width: `${female >= 50 ? female : 100 - female}%` }} />
+        <div className="relative mt-2 h-2.5 rounded-full bg-canvas">
+          <span className="absolute inset-y-0 left-1/2 w-px bg-line" />
+          <div className="absolute inset-y-0 rounded-full bg-brand" style={skew >= 0 ? { left: "50%", width: `${skew * 50}%` } : { right: "50%", width: `${-skew * 50}%` }} />
         </div>
+        <div className="mt-1 flex justify-between text-[11px] text-faint"><span>Male</span><span>Female</span></div>
         <div className="mt-5 text-sm font-medium">Top taste affinities</div>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {profile.taste.slice(0, 8).map((t) => (
