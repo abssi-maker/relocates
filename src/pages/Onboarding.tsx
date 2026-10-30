@@ -371,7 +371,7 @@ function FirstPlan({ ctx, onDone }: { ctx: StartCtx; onDone: (planId: string) =>
           </li>
         ))}
       </ol>
-      <div className="mt-7"><AgentTrace trace={trace} defaultOpen live={!error} /></div>
+      <div className="mt-7"><AgentTrace trace={trace} city={ctx.city} defaultOpen live={!error} /></div>
       {error && (
         <div className="mt-5 space-y-3">
           <ErrorNote>{error}</ErrorNote>

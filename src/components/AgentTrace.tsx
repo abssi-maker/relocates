@@ -13,13 +13,15 @@ const TOOL_LABEL: Record<string, string> = {
 };
 
 /** Flattens agent steps into the Qloo calls behind them, so judges and founders can see the evidence. */
-export function traceRows(trace: TraceEntry[]) {
+export function traceRows(trace: TraceEntry[], city?: string) {
   const rows: { tool: string; text: string; ms?: number; error?: string }[] = [];
   for (const t of trace) {
     if (t.qloo?.length) {
       for (const q of t.qloo) {
         const type = q.params["filter.type"] || q.params.types || "";
-        const where = q.params["filter.location.query"] || q.params["signal.location.query"] || (q.params["filter.location"] ? "near spot" : "");
+        const loc = q.params["filter.location"] || q.params["signal.location"] || "";
+        // A Qloo locality id means the whole city; a point means the blocks around a spot.
+        const where = q.params["filter.location.query"] || q.params["signal.location.query"] || (/^[0-9a-f-]{36}$/i.test(loc) ? city || "city" : loc ? "near spot" : "");
         const extra = q.params["output.heatmap.boundary"] ? " · by neighbourhood" : "";
         rows.push({ tool: t.tool, text: `qloo ${q.endpoint} ${type.replace("urn:entity:", "")}${where ? ` · ${where}` : ""}${extra} → ${q.count.toLocaleString()}`, ms: q.ms });
       }
@@ -30,9 +32,9 @@ export function traceRows(trace: TraceEntry[]) {
   return rows;
 }
 
-export function AgentTrace({ trace, defaultOpen = false, live = false }: { trace: TraceEntry[]; defaultOpen?: boolean; live?: boolean }) {
+export function AgentTrace({ trace, city, defaultOpen = false, live = false }: { trace: TraceEntry[]; city?: string; defaultOpen?: boolean; live?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
-  const rows = traceRows(trace);
+  const rows = traceRows(trace, city);
   const qlooCalls = rows.filter((r) => r.text.startsWith("qloo")).length;
   return (
     <div className="rounded-xl border border-line bg-white">

@@ -24,7 +24,7 @@ export function WhereStep({ plan, savePlan }: StepProps) {
         Qloo scored {map.cells.length.toLocaleString()} blocks of {map.locality?.name || plan.city} for how strongly your audience's taste shows up there. <span className="text-ink">Sweet spots</span> are top-decile taste matches outside the city's busiest blocks — your crowd, before the rent.
       </p>
       <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_380px]">
-        <div className="overflow-hidden rounded-xl border border-line">
+        <div className="self-start overflow-hidden rounded-xl border border-line xl:sticky xl:top-4">
           <TasteMap className="h-[460px] w-full lg:h-[600px]" cells={map.cells} hoods={map.hoods} spots={map.spots} ranked={ranked} selected={spot?.id} onSelect={setSelected} />
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line bg-white px-4 py-3 text-xs text-muted">
             <span className="flex items-center gap-2 font-medium text-ink">
@@ -97,7 +97,7 @@ export function WhereStep({ plan, savePlan }: StepProps) {
             <p className="mt-1.5 text-sm leading-relaxed text-muted">{scout.decision!.summary}</p>
             {scout.source === "fallback" && <p className="mt-2 text-xs text-faint">Ranked directly from Qloo scores.</p>}
           </Card>
-          <AgentTrace trace={scout.trace} />
+          <AgentTrace trace={scout.trace} city={plan.city || undefined} />
         </div>
       </div>
     </div>
