@@ -1,6 +1,6 @@
 // One reasoning step of the Scout agent (Gemini with Qloo tools). The browser runs the requested tools via
 // /api/tools and calls back with the results until the agent submits a plan.
-import { edgeGuard, env } from "./_auth.ts";
+import { edgeGuard, env } from "../lib/edge-auth.ts";
 import { AGENT_MODEL, generate, partsOf } from "../lib/gemini.ts";
 import { SCOUT_TOOLS, scoutSystem, type ScoutInput } from "../lib/scout-spec.ts";
 

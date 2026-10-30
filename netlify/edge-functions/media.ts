@@ -1,6 +1,6 @@
 // Poster (Gemini image) and in-store track (Lyria) generation. Runs at the edge so the ~10s generation
 // isn't cut off by the serverless timeout; the response streams straight through to the browser.
-import { signedIn, env } from "./_auth.ts";
+import { signedIn, env } from "../lib/edge-auth.ts";
 
 const MODELS: Record<string, { model: string; config?: object }> = {
   poster: { model: "gemini-3.1-flash-image", config: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "3:4" } } },

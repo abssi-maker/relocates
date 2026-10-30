@@ -1,4 +1,4 @@
-import { edgeGuard, env } from "./_auth.ts";
+import { edgeGuard, env } from "../lib/edge-auth.ts";
 import { generateJson as gen } from "../lib/gemini.ts";
 
 const json = (d: unknown) => Response.json(d);
