@@ -1,5 +1,5 @@
 // The Scout agent's tools. Each returns a compact result for the model and a full artifact for the app.
-import { Qloo, findSpots, type Place } from "./qloo.ts";
+import { Qloo, findSpots, where, type Place } from "./qloo.ts";
 import { decodeGeohash } from "./geo.ts";
 import type { ScoutInput } from "./scout-spec.ts";
 
@@ -16,7 +16,7 @@ export type Artifact =
 export async function runTool(name: string, args: any, input: ScoutInput, qloo: Qloo): Promise<{ result: any; artifact?: Artifact }> {
   const ids = input.brandIds;
   if (name === "map_taste") {
-    const [heat, hoods] = await Promise.all([qloo.heatmap(ids, input.city), qloo.neighbourhoods(ids, input.city)]);
+    const [heat, hoods] = await Promise.all([qloo.heatmap(ids, input.city, input.cityId), qloo.neighbourhoods(ids, input.city, input.cityId)]);
     const spots = findSpots(heat.cells, hoods);
     return {
       result: {
@@ -53,7 +53,7 @@ export async function runTool(name: string, args: any, input: ScoutInput, qloo: 
     return { result: { brands: items.map((b) => ({ entity_id: b.id, name: b.name, affinity: b.affinity })) }, artifact: { type: "collabs", items } };
   }
   if (name === "find_launch_artists") {
-    const items = await qloo.similar(ids, "artist", { "signal.location.query": input.city }, 10);
+    const items = await qloo.similar(ids, "artist", where(input.city, input.cityId, "signal"), 10);
     return {
       result: { artists: items.map((a) => ({ entity_id: a.id, name: a.name, affinity: a.affinity, style: a.tags?.slice(0, 4) })) },
       artifact: { type: "artists", items },

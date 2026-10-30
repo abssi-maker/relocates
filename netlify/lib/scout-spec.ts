@@ -4,6 +4,7 @@ export type ScoutInput = {
   brandIds: string[];
   brandName: string;
   city: string;
+  cityId?: string; // Qloo locality id picked in onboarding; disambiguates names like "New York"
   goal: string;
   timing?: string;
   budget?: string;

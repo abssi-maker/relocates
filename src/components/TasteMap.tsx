@@ -27,11 +27,16 @@ export function TasteMap({ cells, hoods = [], spots, ranked, selected, onSelect,
   useEffect(() => {
     if (!el.current) return;
     const m = L.map(el.current, { zoomControl: true, preferCanvas: true, attributionControl: true, scrollWheelZoom: false });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> · Taste data: Qloo',
-      subdomains: "abcd",
-      maxZoom: 19,
+    const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas";
+    L.tileLayer(`${esri}/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
+      attribution: "Tiles &copy; Esri — Esri, HERE, Garmin, &copy; OpenStreetMap contributors · Taste data: Qloo",
+      maxZoom: 16,
     }).addTo(m);
+    // Place labels sit above the taste cells so neighbourhood names stay readable.
+    const labels = m.createPane("labels");
+    labels.style.zIndex = "450";
+    labels.style.pointerEvents = "none";
+    L.tileLayer(`${esri}/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" }).addTo(m);
     const renderer = L.canvas({ padding: 0.3 });
     const layer = L.layerGroup().addTo(m);
     for (const c of cells) {

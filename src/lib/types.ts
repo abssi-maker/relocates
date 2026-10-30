@@ -19,7 +19,7 @@ export type Decision = {
   partners: { entity_id: string; role: Role; why: string }[];
 };
 
-export type ScoutInput = { brandIds: string[]; brandName: string; city: string; goal: string; timing?: string; budget?: string; audience?: string };
+export type ScoutInput = { brandIds: string[]; brandName: string; city: string; cityId?: string; goal: string; timing?: string; budget?: string; audience?: string };
 
 export type Scout = {
   input: ScoutInput;

@@ -65,10 +65,10 @@ export class Qloo {
     return (b.results?.entities || []).map(slimEntity);
   }
 
-  async heatmap(ids: string[], city: string) {
+  async heatmap(ids: string[], city: string, cityId?: string) {
     const b = await this.get("/v2/insights", {
       "filter.type": "urn:heatmap",
-      "filter.location.query": city,
+      ...where(city, cityId),
       "signal.interests.entities": ids.join(","),
     });
     const cells: Cell[] = (b.results?.heatmap || []).map((c: any) => ({
@@ -83,10 +83,10 @@ export class Qloo {
   }
 
   /** Neighbourhood-sized localities ranked by brand affinity, with their polygons. */
-  async neighbourhoods(ids: string[], city: string, take = 50): Promise<Neighbourhood[]> {
+  async neighbourhoods(ids: string[], city: string, cityId?: string, take = 50): Promise<Neighbourhood[]> {
     const b = await this.get("/v2/insights", {
       "filter.type": "urn:heatmap",
-      "filter.location.query": city,
+      ...where(city, cityId),
       "signal.interests.entities": ids.join(","),
       "output.heatmap.boundary": "urn:entity:locality",
       take,
@@ -128,6 +128,11 @@ export type Place = {
   description?: string; audience?: string; eventSpaces?: boolean; liveMusic?: boolean; rating?: number; tags: string[]; image?: string;
 };
 export type Spot = { id: string; name: string; lat: number; lon: number; affinity: number; popularity: number; label: "sweet" | "prime"; tasteRank: number; busyRank: number };
+
+/** Prefer the exact Qloo locality id; fall back to a fuzzy name query. */
+export function where(city: string, cityId?: string, kind: "filter" | "signal" = "filter"): Record<string, string> {
+  return cityId ? { [`${kind}.location`]: cityId } : { [`${kind}.location.query`]: city };
+}
 
 function slimEntity(e: any): Entity {
   return {

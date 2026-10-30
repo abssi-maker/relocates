@@ -88,7 +88,7 @@ export default function Onboarding() {
   );
 }
 
-type StartCtx = { ws: Workspace; planId: string; city: string; goal: string; timing: string; budget: string };
+type StartCtx = { ws: Workspace; planId: string; city: string; cityId: string; goal: string; timing: string; budget: string };
 
 function ConnectStore({ onDone }: { onDone: (r: StoreRead) => void }) {
   const [url, setUrl] = useState("");
@@ -238,7 +238,8 @@ function GoalCity({ existing, onBack, onCreate, onStarted }: {
 }) {
   const [goal, setGoal] = useState(GOALS[0]);
   const [city, setCity] = useState("");
-  const [cityOk, setCityOk] = useState(false);
+  // The Qloo locality the founder picked; names alone are ambiguous ("New York" is also a state).
+  const [picked, setPicked] = useState<{ id: string; label: string } | null>(null);
   const [options, setOptions] = useState<{ id: string; name: string; label: string }[]>([]);
   const [timing, setTiming] = useState(TIMINGS[1]);
   const [budget, setBudget] = useState(BUDGETS[1]);
@@ -247,21 +248,22 @@ function GoalCity({ existing, onBack, onCreate, onStarted }: {
   const timer = useRef<number>();
 
   useEffect(() => {
-    if (cityOk || city.trim().length < 2) return setOptions([]);
+    if (picked || city.trim().length < 2) return setOptions([]);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
       api<{ results: { id: string; name: string; label: string }[] }>("city", { q: city }).then((r) => setOptions(r.results)).catch(() => setOptions([]));
     }, 300);
-  }, [city, cityOk]);
+  }, [city, picked]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!picked) return setError("Pick your city from the suggestions.");
     setBusy(true);
     setError("");
     try {
       const g = { goal, city: city.trim(), timing, budget };
       const { ws, planId } = await onCreate(g);
-      onStarted({ ws, planId, ...g });
+      onStarted({ ws, planId, cityId: picked.id, ...g });
     } catch (err: any) {
       setError(err.message);
       setBusy(false);
@@ -284,16 +286,16 @@ function GoalCity({ existing, onBack, onCreate, onStarted }: {
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="relative sm:col-span-2">
-              <Field label="City">
+              <Field label="City" hint={picked ? picked.label : "Start typing, then pick your city from the list."}>
                 <div className="relative">
                   <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
-                  <input className={cx(inputCls, "pl-9")} placeholder="e.g. New York City, Austin, London" value={city} onChange={(e) => { setCity(e.target.value); setCityOk(false); }} required />
+                  <input className={cx(inputCls, "pl-9")} placeholder="e.g. New York City, Austin, London" value={city} onChange={(e) => { setCity(e.target.value); setPicked(null); }} required />
                 </div>
               </Field>
               {options.length > 0 && (
                 <div className="absolute inset-x-0 top-full z-10 mt-1 rounded-lg border border-line bg-white p-1 shadow-lg">
                   {options.map((o) => (
-                    <button type="button" key={o.id} onClick={() => { setCity(o.name); setCityOk(true); setOptions([]); }} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-canvas">
+                    <button type="button" key={o.id} onClick={() => { setCity(o.name); setPicked({ id: o.id, label: o.label }); setOptions([]); }} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-canvas">
                       <span className="font-medium">{o.name}</span> <span className="text-faint">{o.label !== o.name && o.label}</span>
                     </button>
                   ))}
@@ -334,6 +336,7 @@ function FirstPlan({ ctx, onDone }: { ctx: StartCtx; onDone: (planId: string) =>
       brandIds: ws.brand?.ids || [],
       brandName: ws.brand?.name || ws.name,
       city: ctx.city,
+      cityId: ctx.cityId,
       goal: ctx.goal,
       timing: ctx.timing,
       budget: ctx.budget,
