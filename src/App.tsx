@@ -20,7 +20,8 @@ function Protected({ children }: { children: ReactNode }) {
 }
 
 function AppHome() {
-  const { workspaces } = useSession();
+  const { workspaces, workspacesReady } = useSession();
+  if (!workspacesReady) return <div className="flex h-full items-center justify-center"><Spinner className="h-6 w-6" /></div>;
   return <Navigate to={workspaces.length ? "/app/plans" : "/app/onboarding"} replace />;
 }
 

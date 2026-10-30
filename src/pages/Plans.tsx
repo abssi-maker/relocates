@@ -7,7 +7,7 @@ import { useSession } from "../lib/session";
 import type { Plan } from "../lib/types";
 
 export default function Plans() {
-  const { workspace, workspaces } = useSession();
+  const { workspace, workspaces, workspacesReady } = useSession();
   const [plans, setPlans] = useState<Plan[] | null>(null);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function Plans() {
       .then(({ data }) => setPlans((data || []) as Plan[]));
   }, [workspace]);
 
-  if (!workspaces.length) return <Navigate to="/app/onboarding" replace />;
+  if (workspacesReady && !workspaces.length) return <Navigate to="/app/onboarding" replace />;
   return (
     <div className="px-5 py-8 sm:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">

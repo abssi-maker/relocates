@@ -6,6 +6,8 @@ import type { Workspace } from "./types";
 type Ctx = {
   session: Session | null;
   ready: boolean;
+  /** True once the signed-in user's workspaces have loaded (sign-in navigates before that). */
+  workspacesReady: boolean;
   workspaces: Workspace[];
   workspace: Workspace | null;
   setWorkspaceId: (id: string) => void;
@@ -19,6 +21,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [loadedUser, setLoadedUser] = useState<string | null>(null);
   const [workspaceId, setWorkspaceIdState] = useState<string | null>(() => {
     try {
       return localStorage.getItem(KEY);
@@ -37,13 +40,19 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
-      if (data.session) await reloadWorkspaces();
+      if (data.session) {
+        await reloadWorkspaces();
+        setLoadedUser(data.session.user.id);
+      }
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      if (s) reloadWorkspaces();
-      else setWorkspaces([]);
+      if (s) reloadWorkspaces().then(() => setLoadedUser(s.user.id));
+      else {
+        setWorkspaces([]);
+        setLoadedUser(null);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [reloadWorkspaces]);
@@ -58,7 +67,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   const workspace = workspaces.find((w) => w.id === workspaceId) || workspaces[0] || null;
-  return <SessionCtx.Provider value={{ session, ready, workspaces, workspace, setWorkspaceId, reloadWorkspaces }}>{children}</SessionCtx.Provider>;
+  const workspacesReady = !!session && loadedUser === session.user.id;
+  return <SessionCtx.Provider value={{ session, ready, workspacesReady, workspaces, workspace, setWorkspaceId, reloadWorkspaces }}>{children}</SessionCtx.Provider>;
 }
 
 export const useSession = () => useContext(SessionCtx);
