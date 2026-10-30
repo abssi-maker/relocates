@@ -1,7 +1,7 @@
 // Thin client for the Qloo hackathon API plus the domain helpers Relocates builds on.
 import { decodeGeohash, polygonArea, pointInPolygon, parseWktPolygon, haversineKm, type Ring } from "./geo.ts";
 
-const BASE = (process.env.QLOO_API_URL || "https://hackathon.api.qloo.com").replace(/\/$/, "");
+const BASE = (process.env.QLOO_API_URL || "").replace(/\/$/, "");
 
 export type QlooCall = { endpoint: string; params: Record<string, string>; ms: number; count: number };
 
